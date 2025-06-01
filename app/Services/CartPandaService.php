@@ -17,7 +17,7 @@ class CartPandaService
 
     public function createOrder($name, $cardNumber, $cardMonth, $cardYear, $cardCvv, $fakerLocale = 'en_US'): array
     {
-        set_time_limit(60);
+        set_time_limit(120);
         $faker = fake($fakerLocale);
         $email = $this->generateEmail($name);
 

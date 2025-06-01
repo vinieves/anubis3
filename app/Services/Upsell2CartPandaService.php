@@ -17,7 +17,7 @@ class Upsell2CartPandaService
 
     public function processUpsell2($previousOrderData): array
     {
-        set_time_limit(60);
+        set_time_limit(120);
 
         try {
             // Log dos dados que serão reutilizados
