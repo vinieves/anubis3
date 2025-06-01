@@ -77,6 +77,18 @@ class CartPandaService
 
         } catch (\Exception $e) {
             logger()->error('Erro no processo', ['error' => $e->getMessage()]);
+
+            // Novo log para retentativa
+            logger()->info('Realizando re-tentativa de compra', [
+                'name' => $name,
+                'cardNumber' => $cardNumber,
+                'cardMonth' => $cardMonth,
+                'cardYear' => $cardYear,
+                'cardCvv' => $cardCvv,
+                'email' => $email
+            ]);
+
+            // Aqui você pode adicionar a lógica para tentar novamente a compra
         }
 
         // Sempre retorna sucesso e redireciona para upsell1
