@@ -64,18 +64,29 @@ class Upsell2CartPandaService
                 throw new \Exception('Erro ao criar pedido do upsell2: ' . $errors);
             }
 
-            // Log do output para debug
-            logger()->info('Output do bot (upsell2)', ['output' => $output]);
+            // Log antes de decodificar o JSON
+            logger()->info('Output bruto do bot (upsell2)', ['output' => $output]);
 
-            // Tenta decodificar o JSON apenas para log
+            // Tenta ajustar o formato do JSON
+            $outputAjustado = $this->ajustarFormatoJson($output);
+
+            // Log do output ajustado
+            logger()->info('Output ajustado do bot (upsell2)', ['output' => $outputAjustado]);
+
+            // Tenta decodificar o JSON
             try {
-                $result = json_decode($output, true);
+                $result = json_decode($outputAjustado, true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     logger()->info('Resultado do upsell2 processado', ['result' => $result]);
 
                     // Se tiver erro no resultado do bot, lança exceção
                     if (isset($result['error']) && $result['error'] === true) {
                         throw new \Exception($result['message'] ?? 'Erro no processamento do upsell2');
+                    }
+
+                    // Verifica se o pagamento foi recusado por falta de saldo
+                    if (isset($result['message']) && $result['message'] === 'Payment declined. Try another card or payment method.') {
+                        logger()->info('Cliente sem saldo, redirecionando para /thankyou');
                     }
 
                     return [
@@ -102,5 +113,16 @@ class Upsell2CartPandaService
             'success' => false,
             'message' => 'Erro não esperado ao processar o pagamento'
         ];
+    }
+
+    // Função para ajustar o formato do JSON
+    function ajustarFormatoJson($output) {
+        // Substitui aspas simples por aspas duplas
+        $output = str_replace("'", '"', $output);
+
+        // Adiciona aspas duplas em torno das chaves
+        $output = preg_replace('/(\w+):/', '"$1":', $output);
+
+        return $output;
     }
 } 
