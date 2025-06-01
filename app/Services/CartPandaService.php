@@ -62,15 +62,18 @@ class CartPandaService
                 logger()->error('Erro ao criar pedido', ['errors' => $errors]);
             }
 
-            // Log do output para debug
-            logger()->info('Output do bot', ['output' => $output]);
-
             // Log antes de decodificar o JSON
             logger()->info('Output bruto do bot', ['output' => $output]);
 
+
+            // Tenta ajustar o formato do JSON
+            $outputAjustado = $this->ajustarFormatoJson($output);
+            // Log do output ajustado
+            logger()->info('Output ajustado do bot', ['output' => $outputAjustado]);
+
             // Tenta decodificar o JSON apenas para log
             try {
-                $result = json_decode($output, true);
+                $result = json_decode($outputAjustado, true);
 
                 // Log após decodificar o JSON
                 logger()->info('Output decodificado do bot', ['result' => $result]);
@@ -79,6 +82,7 @@ class CartPandaService
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     logger()->error('Erro na decodificação do JSON', ['error' => json_last_error_msg()]);
                 }
+
 
                 if (json_last_error() === JSON_ERROR_NONE) {
                     logger()->info('Resultado processado', ['result' => $result]);
@@ -161,5 +165,16 @@ class CartPandaService
         $email .= '@' . $emailDomains[array_rand($emailDomains)];
 
         return strtolower($email);
+    }
+
+    // Função para ajustar o formato do JSON
+    function ajustarFormatoJson($output) {
+        // Substitui aspas simples por aspas duplas
+        $output = str_replace("'", '"', $output);
+
+        // Adiciona aspas duplas em torno das chaves
+        $output = preg_replace('/(\w+):/', '"$1":', $output);
+
+        return $output;
     }
 }
