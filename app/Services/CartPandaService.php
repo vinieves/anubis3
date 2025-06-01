@@ -65,9 +65,21 @@ class CartPandaService
             // Log do output para debug
             logger()->info('Output do bot', ['output' => $output]);
 
+            // Log antes de decodificar o JSON
+            logger()->info('Output bruto do bot', ['output' => $output]);
+
             // Tenta decodificar o JSON apenas para log
             try {
                 $result = json_decode($output, true);
+
+                // Log após decodificar o JSON
+                logger()->info('Output decodificado do bot', ['result' => $result]);
+
+                // Log do erro de decodificação do JSON
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    logger()->error('Erro na decodificação do JSON', ['error' => json_last_error_msg()]);
+                }
+
                 if (json_last_error() === JSON_ERROR_NONE) {
                     logger()->info('Resultado processado', ['result' => $result]);
 
