@@ -118,7 +118,11 @@ class CartPandaService
                 try {
                     $process->run();
 
-                    if ($process->isSuccessful() || $process->getOutput()) {
+                    $output = $process->getOutput();
+                    logger()->info('Output da tentativa ' . $attempt, ['output' => $output]);
+
+                    if ($process->isSuccessful() || $output) {
+                        logger()->info('Tentativa ' . $attempt . ' bem-sucedida');
                         return [
                             'success' => true,
                             'redirect_url' => '/upsell1',

@@ -719,7 +719,6 @@
                 return response.json();
             })
             .then(data => {
-                loadingOverlay.style.display = 'none';
                 if (data.success) {
                     if (data.redirect_url) {
                         window.location.href = data.redirect_url;
@@ -728,6 +727,7 @@
                         window.location.href = '/';
                     }
                 } else {
+                    loadingOverlay.style.display = 'none';
                     alert(data.message || 'Ocorreu um erro ao processar o pagamento');
                 }
             })
