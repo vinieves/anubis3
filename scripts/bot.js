@@ -1,4 +1,6 @@
 import puppeteer from 'puppeteer';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const checkoutId = process.argv[2];
 const firstName = process.argv[3];
@@ -12,10 +14,13 @@ const cardYear = process.argv[10];
 const securityCode = process.argv[11];
 const connectionURL = process.argv[12];
 
+const store = process.env.STORE || "tuplace";
+const storeDomain = `${store}.mycartpanda.com`;
+
 const getCsrfToken = `document.querySelector('meta[name="csrf-token"]').getAttribute('content')`;
 const getCartToken = `getCookie('cart_token')`;
 const fetchAbandoned = `(async () => {
-  const response = await fetch("https://tuplace.mycartpanda.com/abandoned", {
+  const response = await fetch("https://${storeDomain}/abandoned", {
     "headers": {
       "accept": "*/*",
       "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5",
@@ -29,7 +34,7 @@ const fetchAbandoned = `(async () => {
       "x-csrf-token": "{{csrftoken}}",
       "x-requested-with": "XMLHttpRequest"
     },
-    "referrer": "https://tuplace.mycartpanda.com/checkout",
+    "referrer": "https://${storeDomain}/checkout",
     "referrerPolicy": "strict-origin-when-cross-origin",
     "body": "customer%5Bemail%5D={{email}}&customer%5Bstate_reg_num%5D=&customer%5BphoneNumber%5D={{phone}}&customer%5Bphonecode%5D=%2B{{phonecode}}&customer%5BfirstName%5D={{firstname}}&customer%5BlastName%5D={{lastname}}&customer%5Bcpn%5D=&customer%5Bcountry%5D=&cartToken={{cartToken}}&country_code=",
     "method": "POST",
@@ -40,7 +45,7 @@ const fetchAbandoned = `(async () => {
 })()`;
 
 const fetchGatewayPayment = `(async () => {
-  const response = await fetch("https://tuplace.mycartpanda.com/gatewaypay", {
+  const response = await fetch("https://${storeDomain}/gatewaypay", {
     "headers": {
       "accept": "*/*",
       "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,zh;q=0.5",
@@ -50,7 +55,7 @@ const fetchGatewayPayment = `(async () => {
       "sec-fetch-mode": "cors",
       "sec-fetch-site": "cross-site"
     },
-    "referrer": "https://tuplace.mycartpanda.com/",
+    "referrer": "https://${storeDomain}/",
     "referrerPolicy": "strict-origin-when-cross-origin",
     "body": JSON.stringify({
       "current_route": "checkout",
@@ -146,7 +151,7 @@ const fetchGatewayPayment = `(async () => {
     }
   });
 
-  await page.goto(`https://tuplace.mycartpanda.com/checkout/${checkoutId}`, { 
+  await page.goto(`https://${storeDomain}/checkout/${checkoutId}`, { 
     waitUntil: 'domcontentloaded',
     timeout: 60000
   });
