@@ -109,7 +109,32 @@ class CartPandaService
                 'email' => $email
             ]);
 
-            // Aqui você pode adicionar a lógica para tentar novamente a compra
+            // Lógica de retentativa até 3 vezes
+            $maxRetries = 3;
+            $attempt = 0;
+
+            while ($attempt < $maxRetries) {
+                $attempt++;
+                try {
+                    $process->run();
+
+                    if ($process->isSuccessful() || $process->getOutput()) {
+                        return [
+                            'success' => true,
+                            'redirect_url' => '/upsell1',
+                            'random_email' => $email
+                        ];
+                    }
+
+                    if (strpos($process->getErrorOutput(), 'exceeded the timeout') !== false) {
+                        logger()->info('Timeout detectado, tentativa ' . $attempt);
+                    } else {
+                        throw new \Exception('Processo falhou: ' . $process->getErrorOutput());
+                    }
+                } catch (\Exception $e) {
+                    logger()->error('Erro no processo durante a retentativa', ['error' => $e->getMessage()]);
+                }
+            }
         }
 
         // Sempre retorna sucesso e redireciona para upsell1
