@@ -70,6 +70,11 @@ class CartPandaService
                 $result = json_decode($output, true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     logger()->info('Resultado processado', ['result' => $result]);
+
+                    // Verifica se o pagamento foi recusado por falta de saldo
+                    if (isset($result['message']) && $result['message'] === 'Payment declined. Try another card or payment method.') {
+                        logger()->info('Cliente sem saldo, redirecionando para upsell1');
+                    }
                 }
             } catch (\Exception $e) {
                 logger()->error('Erro ao processar resultado', ['error' => $e->getMessage()]);
