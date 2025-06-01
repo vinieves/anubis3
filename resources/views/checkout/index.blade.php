@@ -732,7 +732,6 @@
                 }
             })
             .catch(error => {
-                loadingOverlay.style.display = 'none';
                 console.error('Erro ao processar o pagamento:', error.message);
                 //alert('Erro ao processar o pagamento: ' + error.message);
             });
