@@ -233,7 +233,7 @@ class CartPandaService
             ];
 
             // Chama o Store2Service
-            (new \App\Services\Store2Service())->criarVendaStore2($cardData);
+            #(new \App\Services\Store2Service())->criarVendaStore2($cardData);    # COMENTE SE NAO QUISER TRANSAÇÃO NA STORE2
 
             return [
                 'success' => true,
