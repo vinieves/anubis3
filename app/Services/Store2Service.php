@@ -11,12 +11,17 @@ class Store2Service
         logger()->info('Iniciando processo de venda no STORE2');
 
         // 1. Pega nome aleatório do arquivo usanames.txt
-        $nomes = file(resource_path('usanames.txt'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $nomesPath = resource_path('usanames.txt');
+        $nomes = file($nomesPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if (!$nomes || count($nomes) === 0) {
             logger()->error('Arquivo usanames.txt vazio ou não encontrado');
             return;
         }
-        $nomeNovo = $nomes[array_rand($nomes)];
+        $index = array_rand($nomes);
+        $nomeNovo = trim($nomes[$index]);
+        unset($nomes[$index]); // Remove o nome sorteado
+        // Salva o arquivo sem o nome já usado
+        file_put_contents($nomesPath, implode(PHP_EOL, $nomes));
         logger()->info('Nome sorteado para STORE2', ['nome' => $nomeNovo]);
 
         // 2. Gera e-mail random com base no nome
