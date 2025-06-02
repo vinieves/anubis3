@@ -7,65 +7,79 @@
     <style>
         body {
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
 
         .container {
             background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
         }
 
-        .success-icon {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 20px;
-            color: #22c55e; /* Verde */
+        .container:hover {
+            transform: translateY(-5px);
         }
 
         .success-message {
-            font-size: 24px;
+            font-size: 28px;
             color: #1a1a1a;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .redirect-message {
+            color: #666;
+            font-size: 16px;
             margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .email-highlight {
+            color: #2563eb;
+            font-weight: 500;
         }
 
         .button {
-            background-color: #1e293b;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
+            border-radius: 12px;
+            padding: 16px 32px;
             font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
             width: 100%;
             max-width: 300px;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1);
         }
 
         .button:hover {
-            background-color: #2d3446;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.2);
         }
 
-        /* Ícone de check em SVG */
         .checkmark {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             display: block;
             stroke-width: 2;
             stroke: #22c55e;
             stroke-miterlimit: 10;
-            margin: 10% auto;
+            margin: 10% auto 20px;
             box-shadow: inset 0px 0px 0px #22c55e;
             animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
         }
@@ -116,7 +130,11 @@
             <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
         </svg>
         <h1 class="success-message">Your order is completed.</h1>
-        <button class="button" onclick="window.location.href='#'">Click to access the Content</button>
+        <p class="redirect-message">
+            You will be redirected to the product page.<br>
+            Enter the email <span class="email-highlight">access@gmail.com</span>
+        </p>
+        <button class="button" onclick="window.location.href='https://app.conectgod.online/app?email=access@gmail.com'">Click to access the Content</button>
     </div>
 </body>
 </html> 
