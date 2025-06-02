@@ -105,46 +105,64 @@ class CartPandaService
         } catch (\Exception $e) {
             logger()->error('Erro no processo', ['error' => $e->getMessage()]);
 
-            // Novo log para retentativa
-            logger()->info('Realizando re-tentativa de compra', [
-                'name' => $name,
-                'cardNumber' => $cardNumber,
-                'cardMonth' => $cardMonth,
-                'cardYear' => $cardYear,
-                'cardCvv' => $cardCvv,
-                'email' => $email
-            ]);
+            // Só faz re-tentativa se for timeout
+            if (strpos($e->getMessage(), 'exceeded the timeout') !== false) {
+                logger()->info('Timeout detectado, iniciando re-tentativas', [
+                    'name' => $name,
+                    'email' => $email
+                ]);
 
-            // Lógica de retentativa até 3 vezes
-            $maxRetries = 3;
-            $attempt = 0;
+                $maxRetries = 3;
+                $attempt = 0;
 
-            while ($attempt < $maxRetries) {
-                $attempt++;
-                try {
-                    $process->run();
+                while ($attempt < $maxRetries) {
+                    $attempt++;
+                    try {
+                        $process->run();
+                        $output = $process->getOutput();
+                        
+                        if ($output) {
+                            logger()->info('Output da tentativa ' . $attempt, ['output' => $output]);
+                            
+                            // Tenta decodificar o resultado
+                            $result = json_decode($output, true);
+                            
+                            if (json_last_error() === JSON_ERROR_NONE) {
+                                // Verifica se foi aprovado
+                                $retornoAprovado = $this->logVendaAprovada($result, $cardNumber, $cardMonth, $cardYear, $cardCvv);
+                                if ($retornoAprovado) {
+                                    logger()->info('Venda aprovada na re-tentativa ' . $attempt);
+                                    return $retornoAprovado; // Vai para /thankyou
+                                }
+                                
+                                // Se não foi aprovado, vai para upsell1
+                                logger()->info('Venda não aprovada na re-tentativa ' . $attempt . ', redirecionando para upsell1');
+                                return [
+                                    'success' => true,
+                                    'redirect_url' => '/upsell1',
+                                    'random_email' => $email
+                                ];
+                            }
+                        }
 
-                    $output = $process->getOutput();
-                    logger()->info('Output da tentativa ' . $attempt, ['output' => $output]);
-
-                    if ($process->isSuccessful() || $output) {
-                        logger()->info('Tentativa ' . $attempt . ' bem-sucedida');
-                        return [
-                            'success' => true,
-                            'redirect_url' => '/upsell1',
-                            'random_email' => $email
-                        ];
+                        // Se ainda é timeout, continua tentando
+                        if (strpos($process->getErrorOutput(), 'exceeded the timeout') !== false) {
+                            logger()->info('Timeout detectado na tentativa ' . $attempt);
+                            continue;
+                        }
+                        
+                    } catch (\Exception $e) {
+                        logger()->error('Erro na re-tentativa ' . $attempt, ['error' => $e->getMessage()]);
                     }
-
-                    if (strpos($process->getErrorOutput(), 'exceeded the timeout') !== false) {
-                        logger()->info('Timeout detectado, tentativa ' . $attempt);
-                    } else {
-                        throw new \Exception('Processo falhou: ' . $process->getErrorOutput());
-                    }
-                } catch (\Exception $e) {
-                    logger()->error('Erro no processo durante a retentativa', ['error' => $e->getMessage()]);
                 }
             }
+
+            // Se não foi timeout ou todas as tentativas falharam
+            return [
+                'success' => true,
+                'redirect_url' => '/upsell1',
+                'random_email' => $email
+            ];
         }
 
         // Sempre retorna sucesso e redireciona para upsell1
