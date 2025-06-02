@@ -499,7 +499,7 @@
                     </div>
                 </div>
             </header>
-            <div class="w-full py-4 flex justify-center"><img src="./uploads/a322e68c-61d0-4dd9-ba6f-9b7c45582cde.png"
+            <div class="w-full py-4 flex justify-center"><img src="./uploads/banner.jpg"
                     alt="Promotion banner" class="w-full max-w-4xl rounded-lg shadow-md"></div>
             <main class="container mx-auto p-0 md:px-4 md:py-16 py-[28px]">
                 <div class="md:max-w-2xl mx-auto">
@@ -507,10 +507,10 @@
                         class="bg-white rounded-2xl shadow-lg border border-border/50 overflow-hidden animate-slide-up transition-all duration-500">
                         <div class="p-6 md:p-8">
                             <div class="flex flex-row items-start mb-8 gap-4"><img
-                                    src="./uploads/4e63bda9-7ef3-4ef6-a046-3dc6f0a6d068.png" alt="Protocol Men Alpha"
+                                    src="./uploads/profile.jpg" alt="ProsperityTone - App"
                                     class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
                                 <div class="flex flex-col">
-                                    <h2 class="text-xl font-bold">Protocol Men Alpha - Alpha Digital</h2>
+                                    <h2 class="text-xl font-bold">ProsperityTone - App</h2>
                                     <span class="text-green-600 font-bold text-xl mt-1">Total: $ 9.92 USD</span>
                                 </div>
                             </div>
