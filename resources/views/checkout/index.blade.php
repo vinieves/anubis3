@@ -465,24 +465,6 @@
         }
     </style>
 
-<script
-  src="https://cdn.utmify.com.br/scripts/utms/latest.js"
-  data-utmify-prevent-xcod-sck
-  data-utmify-prevent-subids
-  data-utmify-ignore-iframe
-  data-utmify-is-cartpanda
-  async
-  defer
-></script>
-
-<script>
-  window.pixelId = "67e5746ea0157544d5906800";
-  var a = document.createElement("script");
-  a.setAttribute("async", "");
-  a.setAttribute("defer", "");
-  a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-  document.head.appendChild(a);
-</script>
 
 </head>
 
@@ -897,6 +879,49 @@
 
         const timerInterval = setInterval(updateTimer, 1000);
     </script>
+
+<script>
+  // Função para carregar os scripts da UTMify
+  function loadUtmify() {
+    if (!window.utmifyLoaded) {
+      window.utmifyLoaded = true;
+
+      // Script principal UTMify
+      var s = document.createElement('script');
+      s.src = "https://cdn.utmify.com.br/scripts/utms/latest.js";
+      s.async = true;
+      s.defer = true;
+      s.setAttribute('data-utmify-prevent-xcod-sck', '');
+      s.setAttribute('data-utmify-prevent-subids', '');
+      s.setAttribute('data-utmify-ignore-iframe', '');
+      s.setAttribute('data-utmify-is-cartpanda', '');
+      document.head.appendChild(s);
+
+      // Script do pixel
+      window.pixelId = "67e5746ea0157544d5906800";
+      var a = document.createElement("script");
+      a.setAttribute("async", "");
+      a.setAttribute("defer", "");
+      a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+      document.head.appendChild(a);
+    }
+  }
+
+  // Adiciona o evento ao campo de nome
+  document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('name');
+    if (input) {
+      input.addEventListener('input', function(e) {
+        if (e.target.value.length > 0) {
+          loadUtmify();
+        }
+      });
+    }
+  });
+</script>
+
+
+
 
 
 </body>
