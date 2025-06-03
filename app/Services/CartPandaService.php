@@ -124,8 +124,9 @@ class CartPandaService
                         if ($output) {
                             logger()->info('Output da tentativa ' . $attempt, ['output' => $output]);
                             
-                            // Tenta decodificar o resultado
-                            $result = json_decode($output, true);
+                            // Ajuste e Tenta decodificar o resultado                            
+                            $outputAjustado = $this->ajustarFormatoJson($output);
+                            $result = json_decode($outputAjustado, true);
                             
                             if (json_last_error() === JSON_ERROR_NONE) {
                                 // Verifica se foi aprovado
