@@ -501,7 +501,7 @@
                     </div>
                 </div>
             </header>
-            <div class="w-full py-4 flex justify-center"><img src="./uploads/banner.jpg"
+            <div class="w-full py-4 flex justify-center"><img src="{{ asset('uploads/banner.jpg') }}"
                     alt="Promotion banner" class="w-full max-w-4xl rounded-lg shadow-md"></div>
             <main class="container mx-auto p-0 md:px-4 md:py-16 py-[28px]">
                 <div class="md:max-w-2xl mx-auto">
@@ -509,7 +509,7 @@
                         class="bg-white rounded-2xl shadow-lg border border-border/50 overflow-hidden animate-slide-up transition-all duration-500">
                         <div class="p-6 md:p-8">
                             <div class="flex flex-row items-start mb-8 gap-4"><img
-                                    src="./uploads/profile.jpg" alt="{{ $oferta['nome'] ?? 'ProsperityTone - App' }}"
+                                    src="{{ asset('uploads/profile.jpg') }}" alt="{{ $oferta['nome'] ?? 'ProsperityTone - App' }}"
                                     class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
                                 <div class="flex flex-col">
                                     <h2 class="text-xl font-bold">{{ $oferta['nome'] ?? 'ProsperityTone - App' }}</h2>
