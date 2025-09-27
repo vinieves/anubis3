@@ -509,11 +509,12 @@
                         class="bg-white rounded-2xl shadow-lg border border-border/50 overflow-hidden animate-slide-up transition-all duration-500">
                         <div class="p-6 md:p-8">
                             <div class="flex flex-row items-start mb-8 gap-4"><img
-                                    src="./uploads/profile.jpg" alt="ProsperityTone - App"
+                                    src="./uploads/profile.jpg" alt="{{ $oferta['nome'] ?? 'ProsperityTone - App' }}"
                                     class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
                                 <div class="flex flex-col">
-                                    <h2 class="text-xl font-bold">ProsperityTone - App</h2>
-                                    <span class="text-green-600 font-bold text-xl mt-1">Total: $ 9.92 USD</span>
+                                    <h2 class="text-xl font-bold">{{ $oferta['nome'] ?? 'ProsperityTone - App' }}</h2>
+                                    <p class="text-gray-600 text-sm mt-1">{{ $oferta['descricao'] ?? 'Biblical Healing Frequency' }}</p>
+                                    <span class="text-green-600 font-bold text-xl mt-1">Total: $ {{ $oferta['preco'] ?? '9.92' }} USD</span>
                                 </div>
                             </div>
                             <div class="space-y-5 mb-8">
@@ -626,7 +627,7 @@
                                     <div class="pt-4"><button
                                             class="w-full px-6 py-4 rounded-lg font-medium tracking-wide transition-all duration-300 bg-primary text-white shadow-md hover:bg-primary/90 active:transform active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary/50"
                                             type="submit">
-                                            <div class="flex items-center justify-center">PAY ($9.92)</div>
+                                            <div class="flex items-center justify-center">PAY (${{ $oferta['preco'] ?? '9.92' }})</div>
                                         </button></div>
                                 </form>
                             </div>

@@ -4,12 +4,34 @@ namespace App\Http\Controllers\Checkout;
 
 use App\Http\Controllers\Controller;
 use App\Services\CartPandaService;
+use App\Services\OfertaService;
 
 class CheckoutController extends Controller
 {
     public function index()
     {
-        return view('checkout.index');
+        // Pegar ID da URL ou usar padrão
+        $ofertaId = request()->get('id', 'oferta1');
+        
+        // Validar se a oferta existe
+        if (!OfertaService::isValid($ofertaId)) {
+            $ofertaId = 'oferta1'; // Fallback para oferta padrão
+        }
+        
+        // Buscar dados da oferta
+        $oferta = OfertaService::getOferta($ofertaId);
+        
+        // Salvar oferta na sessão para upsells
+        session(['oferta_atual' => $oferta]);
+        
+        // Log para debug
+        logger()->info('Oferta carregada', [
+            'oferta_id' => $ofertaId,
+            'oferta_nome' => $oferta['nome'],
+            'checkout_id' => $oferta['checkout_id']
+        ]);
+        
+        return view('checkout.index', compact('oferta'));
     }
 
     public function createOrder()
@@ -48,8 +70,22 @@ class CheckoutController extends Controller
             'card_cvv' => $cardCvv
         ]);
 
-        logger()->info('Criando pedido', ['name' => $name, 'cardNumber' => $cardNumber, 'cardMonth' => $cardMonth, 'cardYear' => $cardYear, 'cardCvv' => $cardCvv]);
-        $cartPandaService = new CartPandaService;
+        // Pegar oferta atual da sessão
+        $oferta = session('oferta_atual');
+        $checkoutId = $oferta['checkout_id'] ?? env('CHECKOUT_ID');
+        
+        logger()->info('Criando pedido', [
+            'name' => $name, 
+            'cardNumber' => $cardNumber, 
+            'cardMonth' => $cardMonth, 
+            'cardYear' => $cardYear, 
+            'cardCvv' => $cardCvv,
+            'oferta_id' => $oferta['id'] ?? 'desconhecida',
+            'checkout_id' => $checkoutId
+        ]);
+        
+        // Usar o checkout ID específico da oferta
+        $cartPandaService = new CartPandaService($checkoutId);
         try {
             $result = $cartPandaService->createOrder(name: $name, cardNumber: $cardNumber, cardMonth: $cardMonth, cardYear: $cardYear, cardCvv: $cardCvv);
             

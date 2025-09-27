@@ -10,9 +10,9 @@ class UpsellCartPandaService
 {
     public $checkoutId2;
 
-    public function __construct()
+    public function __construct($checkoutId2 = null)
     {
-        $this->checkoutId2 = env('CHECKOUT_ID2');
+        $this->checkoutId2 = $checkoutId2 ?? env('CHECKOUT_ID2');
     }
 
     public function processUpsell($previousOrderData): array

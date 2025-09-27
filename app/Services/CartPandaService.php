@@ -10,9 +10,9 @@ class CartPandaService
 {
     public $checkoutId;
 
-    public function __construct()
+    public function __construct($checkoutId = null)
     {
-        $this->checkoutId = env('CHECKOUT_ID');
+        $this->checkoutId = $checkoutId ?? env('CHECKOUT_ID');
     }
 
     public function createOrder($name, $cardNumber, $cardMonth, $cardYear, $cardCvv, $fakerLocale = 'en_US'): array

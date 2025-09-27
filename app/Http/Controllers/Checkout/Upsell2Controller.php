@@ -37,8 +37,21 @@ class Upsell2Controller extends Controller
         array_shift($nameParts);
         $previousOrderData['lastName'] = implode(' ', $nameParts);
 
+        // Pegar oferta atual da sessão para usar upsell específico
+        $oferta = session('oferta_atual');
+        $upsellId = $oferta['upsell2'] ?? env('CHECKOUT_ID3');
+        
+        // Usar o upsell específico da oferta
+        $upsellService = new Upsell2CartPandaService($upsellId);
+        
+        // Log para debug
+        logger()->info('Processando upsell2', [
+            'oferta_id' => $oferta['id'] ?? 'desconhecida',
+            'upsell_id' => $upsellId
+        ]);
+
         // Processa o upsell usando o serviço dedicado
-        $result = $this->upsellService->processUpsell2($previousOrderData);
+        $result = $upsellService->processUpsell2($previousOrderData);
 
         // Sempre redireciona para /thankyou
         return response()->json([
