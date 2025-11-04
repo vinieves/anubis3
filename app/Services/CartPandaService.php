@@ -65,18 +65,12 @@ class CartPandaService
             // Log antes de decodificar o JSON
             logger()->info('Output bruto do bot', ['output' => $output]);
 
-
             // Tenta ajustar o formato do JSON
             $outputAjustado = $this->ajustarFormatoJson($output);
-            // Log do output ajustado
-            logger()->info('Output ajustado do bot', ['output' => $outputAjustado]);
 
             // Tenta decodificar o JSON apenas para log
             try {
                 $result = json_decode($outputAjustado, true);
-
-                // Log após decodificar o JSON
-                logger()->info('Output decodificado do bot', ['result' => $result]);
 
                 // Log do erro de decodificação do JSON
                 if (json_last_error() !== JSON_ERROR_NONE) {

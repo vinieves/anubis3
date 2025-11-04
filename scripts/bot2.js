@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ silent: true });
 
 const checkoutId = process.argv[2];
 const firstName = process.argv[3];

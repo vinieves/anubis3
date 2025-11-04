@@ -70,9 +70,6 @@ class UpsellCartPandaService
             // Tenta ajustar o formato do JSON
             $outputAjustado = $this->ajustarFormatoJson($output);
 
-            // Log do output ajustado
-            logger()->info('Output ajustado do bot (upsell)', ['output' => $outputAjustado]);
-
             // Tenta decodificar o JSON
             try {
                 $result = json_decode($outputAjustado, true);
