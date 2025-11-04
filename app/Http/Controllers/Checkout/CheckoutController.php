@@ -36,6 +36,7 @@ class CheckoutController extends Controller
 
     public function createOrder()
     {
+        // Captura e sanitiza os dados
         $name = request()->input('name');
         $cardNumber = request()->input('cardNumber');
         $cardNumber = preg_replace('/[^0-9]/', '', $cardNumber);
@@ -47,6 +48,75 @@ class CheckoutController extends Controller
         $cardCvv = request()->input('cardCvv');
         $cardCvv = preg_replace('/[^0-9]/', '', $cardCvv);
         $email = request()->input('email');
+
+        // VALIDAÇÕES BACKEND - Segurança adicional
+        $errors = [];
+
+        // Valida nome
+        if (empty($name) || strlen($name) < 2) {
+            $errors[] = 'Name is required';
+        }
+        $palavras = explode(' ', trim($name));
+        if (count($palavras) < 2) {
+            $errors[] = 'Please enter full name (first and last name)';
+        }
+
+        // Valida email
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Valid email is required';
+        }
+
+        // Valida número do cartão
+        if (empty($cardNumber)) {
+            $errors[] = 'Card number is required';
+        } elseif (strlen($cardNumber) < 13 || strlen($cardNumber) > 19) {
+            $errors[] = 'Card number must be between 13 and 19 digits';
+        }
+
+        // Valida mês
+        if (empty($cardMonth) || !is_numeric($cardMonth)) {
+            $errors[] = 'Expiration month is required';
+        } elseif ($cardMonth < 1 || $cardMonth > 12) {
+            $errors[] = 'Invalid expiration month';
+        }
+
+        // Valida ano
+        if (empty($cardYear) || !is_numeric($cardYear)) {
+            $errors[] = 'Expiration year is required';
+        }
+
+        // Verifica se cartão está expirado
+        if (!empty($cardMonth) && !empty($cardYear)) {
+            $currentYear = (int)date('y'); // Últimos 2 dígitos do ano
+            $currentMonth = (int)date('m');
+            $year = (int)$cardYear;
+            $month = (int)$cardMonth;
+            
+            if ($year < $currentYear || ($year == $currentYear && $month < $currentMonth)) {
+                $errors[] = 'Card is expired';
+            }
+        }
+
+        // Valida CVV
+        if (empty($cardCvv)) {
+            $errors[] = 'CVV is required';
+        } elseif (strlen($cardCvv) < 3 || strlen($cardCvv) > 4) {
+            $errors[] = 'CVV must be 3 or 4 digits';
+        }
+
+        // Se houver erros, retorna
+        if (!empty($errors)) {
+            logger()->warning('Validação falhou no checkout', [
+                'errors' => $errors,
+                'name' => $name,
+                'email' => $email
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => implode('. ', $errors)
+            ], 422);
+        }
 
         // Salva os dados em JSON
         $this->saveOrderDataToJson([

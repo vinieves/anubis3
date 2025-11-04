@@ -186,6 +186,9 @@ class CartPandaService
             'hotmail.com'
         ];
 
+        // Remove acentuação do nome antes de processar
+        $name = $this->removeAccents($name);
+        
         $fullName = explode(' ', $name);
 
         $nameFirst = rand(0, 100) > 20;
@@ -218,7 +221,41 @@ class CartPandaService
         // Escolhe aleatoriamente um dos domínios
         $email .= '@' . $emailDomains[array_rand($emailDomains)];
 
-        return strtolower($email);
+        // Remove qualquer caractere especial remanescente e converte para minúsculo
+        $email = preg_replace('/[^a-z0-9@._-]/', '', strtolower($email));
+
+        return $email;
+    }
+
+    /**
+     * Remove acentos e caracteres especiais de uma string
+     * Converte: José → Jose, María → Maria, François → Francois
+     */
+    private function removeAccents($string)
+    {
+        // Mapa de caracteres acentuados para sem acento
+        $unwanted_array = [
+            'Š'=>'S', 'š'=>'s', 'Ž'=>'Z', 'ž'=>'z', 
+            'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 
+            'Ç'=>'C', 'È'=>'E', 'É'=>'E', 'Ê'=>'E', 'Ë'=>'E', 
+            'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 
+            'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'ØØ'=>'O', 
+            'Ù'=>'U', 'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 
+            'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss', 
+            'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a', 'æ'=>'a', 
+            'ç'=>'c', 'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 
+            'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 
+            'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o', 'ö'=>'o', 'ø'=>'o', 
+            'ù'=>'u', 'ú'=>'u', 'û'=>'u', 'ü'=>'u', 
+            'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y'
+        ];
+        
+        $string = strtr($string, $unwanted_array);
+        
+        // Remove qualquer caractere não-ASCII remanescente
+        $string = preg_replace('/[^\x20-\x7E]/', '', $string);
+        
+        return $string;
     }
 
     // Função para ajustar o formato do JSON

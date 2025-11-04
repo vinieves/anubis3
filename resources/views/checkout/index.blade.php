@@ -716,6 +716,15 @@
                 body: JSON.stringify(formData)
             })
             .then(response => {
+                // Se for erro de validação (422), pega a mensagem
+                if (response.status === 422) {
+                    return response.json().then(data => {
+                        loadingOverlay.style.display = 'none';
+                        alert(data.message || 'Please check the form and try again');
+                        throw new Error('Validation failed');
+                    });
+                }
+                
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -736,7 +745,10 @@
             })
             .catch(error => {
                 console.error('Erro ao processar o pagamento:', error.message);
-                //alert('Erro ao processar o pagamento: ' + error.message);
+                if (error.message !== 'Validation failed') {
+                    loadingOverlay.style.display = 'none';
+                    alert('Erro ao processar o pagamento. Por favor, tente novamente.');
+                }
             });
         }
 
@@ -776,12 +788,19 @@
 
             input.value = input.value.replace(/\D/g, "").replace(/(\d{4})(?=\d)/g, "$1 ")
 
+            // Verifica se está vazio
             if (cardNumber.length == 0) {
                 createErrorMessage(input, 'Please enter a valid card number');
-            } else {
-                cleanErrorMessage(input);
+                return false;
             }
 
+            // Verifica tamanho mínimo e máximo (cartões válidos têm 13-19 dígitos)
+            if (cardNumber.length < 13 || cardNumber.length > 19) {
+                createErrorMessage(input, 'Card number must be between 13 and 19 digits');
+                return false;
+            }
+
+            // Valida algoritmo de Luhn
             var luhn_validate = function(imei) {
                 return !/^\d+$/.test(imei) || (imei.split('').reduce(function(sum, d, n) {
                     return sum + parseInt(((n + imei.length) % 2) ? d : [0, 2, 4, 6, 8, 1, 3, 5, 7, 9][d]);
@@ -791,41 +810,78 @@
             if (!luhn_validate(cardNumber)) {
                 createErrorMessage(input, 'Please enter a valid card number');
                 return false;
-            } else {
-                cleanErrorMessage(input);
-                return true;
             }
 
+            cleanErrorMessage(input);
+            return true;
         }
 
         function validateCvv(input) {
             let cvv = input.value;
 
-            if (cvv.length > 4 || cvv.length < 3) {
-                createErrorMessage(input, 'CVV must be 3 or 4 digits');
+            // Verifica se está vazio
+            if (!cvv || cvv.length === 0) {
+                createErrorMessage(input, 'Please enter CVV');
                 return false;
-            } else {
-                cleanErrorMessage(input);
-                return true;
             }
 
+            // Verifica se tem apenas números
+            if (!/^\d+$/.test(cvv)) {
+                createErrorMessage(input, 'CVV must contain only numbers');
+                return false;
+            }
+
+            // Verifica tamanho (3 ou 4 dígitos)
+            if (cvv.length < 3 || cvv.length > 4) {
+                createErrorMessage(input, 'CVV must be 3 or 4 digits');
+                return false;
+            }
+
+            cleanErrorMessage(input);
+            return true;
         }
 
         function validateDates(inputMonth, inputYear) {
             const date = new Date();
-            const currentMonth = date.getMonth();
+            const currentMonth = date.getMonth() + 1; // getMonth() retorna 0-11, precisamos 1-12
             const currentYear = date.getFullYear();
+
+            // Verifica se mês foi selecionado
+            if (!inputMonth.value || inputMonth.value === 'Month' || inputMonth.selectedIndex === 0) {
+                createErrorMessage(inputMonth, 'Please select expiration month');
+                return false;
+            }
+
+            // Verifica se ano foi selecionado
+            if (!inputYear.value || inputYear.value === 'Year' || inputYear.selectedIndex === 0) {
+                createErrorMessage(inputYear, 'Please select expiration year');
+                return false;
+            }
 
             const month = parseInt(inputMonth.value);
             const year = parseInt(inputYear.value);
 
-            if (month == "" || year == "" || year < currentYear || (year === currentYear && month < currentMonth)) {
-                createErrorMessage(inputMonth, 'Please enter a valid date');
+            // Verifica se são números válidos
+            if (isNaN(month) || isNaN(year)) {
+                createErrorMessage(inputMonth, 'Please select a valid date');
                 return false;
-            } else {
-                cleanErrorMessage(inputMonth);
-                return true;
             }
+
+            // Verifica se mês está no range válido (1-12)
+            if (month < 1 || month > 12) {
+                createErrorMessage(inputMonth, 'Please select a valid month');
+                return false;
+            }
+
+            // Verifica se o cartão não está expirado
+            if (year < currentYear || (year === currentYear && month < currentMonth)) {
+                createErrorMessage(inputMonth, 'Card is expired or invalid expiration date');
+                return false;
+            }
+
+            cleanErrorMessage(inputMonth);
+            cleanErrorMessage(inputYear);
+            return true;
         }
 
         function createErrorMessage(input, message) {
