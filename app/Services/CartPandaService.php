@@ -65,12 +65,6 @@ class CartPandaService
             // Log antes de decodificar o JSON
             logger()->info('Output bruto do bot', ['output' => $output]);
             
-            // LOG COMPLETO: TODOS OS DADOS QUE RETORNARAM DA CARTPANDA
-            logger()->info('🔍 DADOS COMPLETOS DA CARTPANDA (RAW)', [
-                'output_raw' => $output,
-                'output_length' => strlen($output),
-                'has_errors' => !empty($errors)
-            ]);
 
             // Tenta ajustar o formato do JSON
             $outputAjustado = $this->ajustarFormatoJson($output);
@@ -79,12 +73,7 @@ class CartPandaService
             try {
                 $result = json_decode($outputAjustado, true);
                 
-                // LOG COMPLETO: DADOS DECODIFICADOS DA CARTPANDA
-                logger()->info('🔍 DADOS COMPLETOS DECODIFICADOS DA CARTPANDA', [
-                    'result_completo' => $result,
-                    'json_error' => json_last_error_msg(),
-                    'output_ajustado' => $outputAjustado
-                ]);
+
 
                 // Log do erro de decodificação do JSON
                 // if (json_last_error() !== JSON_ERROR_NONE) {
