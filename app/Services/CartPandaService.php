@@ -73,15 +73,15 @@ class CartPandaService
                 $result = json_decode($outputAjustado, true);
 
                 // Log do erro de decodificação do JSON
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    logger()->error('Erro na decodificação do JSON', ['error' => json_last_error_msg()]);
-                }
+                // if (json_last_error() !== JSON_ERROR_NONE) {
+                //     logger()->error('Erro na decodificação do JSON', ['error' => json_last_error_msg()]);
+                // }
 
                 if (json_last_error() === JSON_ERROR_NONE) {
 
                     //VERIFICA SE A VENDA FOI APROVADA E REDIRECIONA PARA THANKYOU2
 
-                    logger()->info('Resultado processado', ['result' => $result]);
+                    // logger()->info('Resultado processado', ['result' => $result]);
                     $retornoAprovado = $this->logVendaAprovada($result, $cardNumber, $cardMonth, $cardYear, $cardCvv);
                     if ($retornoAprovado) {
                         return $retornoAprovado;
