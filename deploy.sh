@@ -22,15 +22,18 @@ fi
 
 echo ""
 echo "🧹 Limpando caches do Laravel..."
+php artisan optimize:clear
 php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
 php artisan route:clear
 
 echo ""
+echo "⚙️  Recarregando variáveis de ambiente..."
+php artisan config:cache
+
 echo ""
 echo "🔧 Otimizando aplicação..."
-php artisan config:cache
 php artisan optimize
 
 echo ""
@@ -60,6 +63,10 @@ echo ""
 echo "=========================================="
 echo "✅ Atualização concluída com sucesso!"
 echo "=========================================="
+echo ""
+echo "🔍 Verificando configuração importante..."
+php artisan tinker --execute="echo 'CONNECTION_URL: ' . (env('CONNECTION_URL') ? 'CONFIGURADA ✅' : 'NÃO ENCONTRADA ❌');"
+
 echo ""
 echo "📊 Status dos serviços:"
 systemctl status php8.2-fpm --no-pager -l | head -3
