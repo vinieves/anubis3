@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'puppeteer' => [
+        'connection_url' => env('CONNECTION_URL'),
+    ],
+
 ];

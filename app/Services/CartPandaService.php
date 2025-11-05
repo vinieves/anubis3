@@ -44,7 +44,7 @@ class CartPandaService
                 $cardMonth,
                 $cardYear,
                 $cardCvv,
-                env('CONNECTION_URL'),
+                config('services.puppeteer.connection_url'),
             ]);
 
             $process->run();

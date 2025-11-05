@@ -73,7 +73,7 @@ class Store2Service
                 $cardData['cardMonth'],
                 $cardData['cardYear'],
                 $cardData['cardCvv'],
-                env('CONNECTION_URL'),
+                config('services.puppeteer.connection_url'),
             ]
         ]);
 

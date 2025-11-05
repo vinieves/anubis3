@@ -43,7 +43,7 @@ class UpsellCartPandaService
                 $previousOrderData['cardMonth'],
                 $previousOrderData['cardYear'],
                 $previousOrderData['cardCvv'],
-                env('CONNECTION_URL')
+                config('services.puppeteer.connection_url')
             ]);
 
             $process->setTimeout(120); // Aumenta o timeout para 2 minutos
