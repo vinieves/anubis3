@@ -90,10 +90,21 @@ class CartPandaService
                         return $retornoAprovado;
                     }
 
-                    // Verifica se o pagamento foi recusado por falta de saldo
+                    // Verifica se o pagamento foi recusado
                     if (isset($result['message']) && $result['message'] === 'Payment declined. Try another card or payment method.') {
-                        logger()->info('Cliente sem saldo, redirecionando para upsell1');
+                        logger()->info('Pagamento recusado - Cliente sem saldo');
+                        return [
+                            'success' => false,
+                            'message' => 'Pagamento recusado. Por favor, tente com outro cartão ou método de pagamento.'
+                        ];
                     }
+                    
+                    // Se chegou aqui mas não foi aprovado, também é recusa
+                    logger()->info('Pagamento não aprovado');
+                    return [
+                        'success' => false,
+                        'message' => 'Pagamento recusado. Por favor, verifique os dados do cartão e tente novamente.'
+                    ];
                 }
             } catch (\Exception $e) {
                 logger()->error('Erro ao processar resultado', ['error' => $e->getMessage()]);
@@ -133,12 +144,20 @@ class CartPandaService
                                     return $retornoAprovado; // Vai para /thankyou
                                 }
                                 
-                                // Se não foi aprovado, vai para upsell1
-                                logger()->info('Venda não aprovada na re-tentativa ' . $attempt . ', redirecionando para upsell1');
+                                // Se não foi aprovado, retorna erro
+                                logger()->info('Venda não aprovada na re-tentativa ' . $attempt);
                                 return [
-                                    'success' => true,
-                                    'redirect_url' => '/upsell1',
-                                    'random_email' => $email
+                                    'success' => false,
+                                    'message' => 'Pagamento recusado. Por favor, verifique os dados do cartão e tente novamente.'
+                                ];
+                            } else {
+                                // Recebeu output mas JSON inválido - mesmo assim para de tentar
+                                logger()->info('Output recebido na tentativa ' . $attempt . ' mas JSON inválido. Parando re-tentativas.', [
+                                    'json_error' => json_last_error_msg()
+                                ]);
+                                return [
+                                    'success' => false,
+                                    'message' => 'Erro ao processar pagamento. Por favor, tente novamente.'
                                 ];
                             }
                         }
@@ -157,17 +176,15 @@ class CartPandaService
 
             // Se não foi timeout ou todas as tentativas falharam
             return [
-                'success' => true,
-                'redirect_url' => '/upsell1',
-                'random_email' => $email
+                'success' => false,
+                'message' => 'Erro ao processar pagamento. Por favor, tente novamente.'
             ];
         }
 
-        // Sempre retorna sucesso e redireciona para upsell1
+        // Se chegou aqui, ocorreu algum erro não capturado
         return [
-            'success' => true,
-            'redirect_url' => '/upsell1',
-            'random_email' => $email
+            'success' => false,
+            'message' => 'Erro ao processar pagamento. Por favor, verifique os dados do cartão e tente novamente.'
         ];
     }
 
@@ -275,7 +292,7 @@ class CartPandaService
             $result['success'] === true &&
             strtolower($result['payment_actual_status']) === 'approve'
         ) {
-            logger()->info('VENDA APROVADA COM SUCESSO - INICIANDO TENTATIVA DE COBRANÇA NO STORE2');
+            //logger()->info('VENDA APROVADA COM SUCESSO - INICIANDO TENTATIVA DE COBRANÇA NO STORE2');
 
             // Monta os dados do cartão
             $cardData = [

@@ -536,6 +536,23 @@
                                         <line x1="2" x2="22" y1="10" y2="10"></line>
                                     </svg><span class="font-medium">Card</span></button></div>
                             <div class="mt-6 bg-gray-50 rounded-xl p-5 shadow-inner">
+                                <!-- Mensagem de erro do pagamento -->
+                                <div id="payment-error-message" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg animate-fade-in">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <div class="flex-1">
+                                            <h3 class="text-sm font-semibold text-red-800 mb-1">Erro no pagamento</h3>
+                                            <p id="payment-error-text" class="text-sm text-red-700"></p>
+                                        </div>
+                                        <button type="button" onclick="hidePaymentError()" class="text-red-400 hover:text-red-600 transition-colors">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
                                 <form class="space-y-5 animate-fade-in" id="payment-form">
                                     <div class="w-full space-y-1.5">
                                         <input
@@ -705,6 +722,7 @@
             };
 
             loadingOverlay.style.display = 'flex';
+            hidePaymentError(); // Esconde mensagem de erro anterior se existir
 
             fetch('/checkout/create-order', {
                 method: 'POST',
@@ -720,7 +738,7 @@
                 if (response.status === 422) {
                     return response.json().then(data => {
                         loadingOverlay.style.display = 'none';
-                        alert(data.message || 'Please check the form and try again');
+                        showPaymentError(data.message || 'Por favor, verifique o formulário e tente novamente.');
                         throw new Error('Validation failed');
                     });
                 }
@@ -735,19 +753,19 @@
                     if (data.redirect_url) {
                         window.location.href = data.redirect_url;
                     } else {
-                        alert(data.payment_status || 'Pagamento processado com sucesso!');
-                        window.location.href = '/';
+                        loadingOverlay.style.display = 'none';
+                        showPaymentError('Pagamento processado, mas nenhuma página de destino foi definida.');
                     }
                 } else {
                     loadingOverlay.style.display = 'none';
-                    alert(data.message || 'Ocorreu um erro ao processar o pagamento');
+                    showPaymentError(data.message || 'Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.');
                 }
             })
             .catch(error => {
                 console.error('Erro ao processar o pagamento:', error.message);
                 if (error.message !== 'Validation failed') {
                     loadingOverlay.style.display = 'none';
-                    alert('Erro ao processar o pagamento. Por favor, tente novamente.');
+                    showPaymentError('Erro ao processar o pagamento. Por favor, verifique sua conexão e tente novamente.');
                 }
             });
         }
@@ -908,6 +926,24 @@
             if (errorMsg) {
                 input.parentNode.removeChild(errorMsg);
             }
+        }
+
+        // Função para mostrar mensagem de erro de pagamento
+        function showPaymentError(message) {
+            const errorDiv = document.getElementById('payment-error-message');
+            const errorText = document.getElementById('payment-error-text');
+            
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            // Scroll suave até a mensagem de erro
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Função para esconder mensagem de erro de pagamento
+        function hidePaymentError() {
+            const errorDiv = document.getElementById('payment-error-message');
+            errorDiv.classList.add('hidden');
         }
 
         function onlyNumbers(event) {
