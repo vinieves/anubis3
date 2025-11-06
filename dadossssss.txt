@@ -1,0 +1,34 @@
+VN
+
+CHECKOUT_ID="185530614:1"
+CHECKOUT_ID2="185737078:1"
+CHECKOUT_ID3="185737081:1"
+
+
+
+RALF
+
+CHECKOUT_ID="184264576:1"
+CHECKOUT_ID2="184264573:1"
+CHECKOUT_ID3="184264535:1"
+
+Pagamento recusado por falta de saldo: "Pagamento recusado. Por favor, tente com outro cartão ou método de pagamento."
+Pagamento não aprovado: "Pagamento recusado. Por favor, verifique os dados do cartão e tente novamente."
+Erro de processamento: "Erro ao processar pagamento. Por favor, tente novamente."
+
+/\ NO index.blade.php
+
+
+INSERT INTO `admin_users` (
+  `name`, 
+  `access_token`, 
+  `created_at`, 
+  `updated_at`
+) VALUES (
+  'Admin Princaaipal',
+  'ADM_DFsd654as6d4SD656rkgo40923L456',
+  NOW(),
+  NOW()
+);
+
+PRA CRIAR ADMIN
