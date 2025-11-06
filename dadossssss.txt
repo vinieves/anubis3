@@ -19,16 +19,23 @@ Erro de processamento: "Erro ao processar pagamento. Por favor, tente novamente.
 /\ NO index.blade.php
 
 
-INSERT INTO `admin_users` (
-  `name`, 
-  `access_token`, 
-  `created_at`, 
-  `updated_at`
-) VALUES (
-  'Admin Princaaipal',
-  'ADM_DFsd654as6d4SD656rkgo40923L456',
-  NOW(),
-  NOW()
-);
+DB::statement("CREATE TABLE admin_users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(255) NOT NULL,
+  access_token VARCHAR(255) NOT NULL UNIQUE,
+  last_login DATETIME,
+  created_at DATETIME,
+  updated_at DATETIME
+)");
+
+DB::table('admin_users')->insert([
+    'name' => 'Admin Principal',
+    'access_token' => 'ADM_DFsd654as6d4SD654sf65DG4D6rkgo40923L456',
+    'created_at' => now(),
+    'updated_at' => now()
+]);
+
+exit
+SQLITE
 
 PRA CRIAR ADMIN
