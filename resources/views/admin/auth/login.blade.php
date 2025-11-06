@@ -6,10 +6,19 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: url('/uploads/background-admin.avif');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
 </head>
-<body class="bg-amber-50 min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4">
     
-    <div class="w-full max-w-xs">
+    <!-- Container com fundo amarelo claro -->
+    <div class="w-full max-w-xs bg-amber-50 p-8 rounded-lg shadow-lg">
         <form method="POST" action="{{ route('admin.login.post') }}" class="space-y-4">
             @csrf
             
@@ -29,8 +38,10 @@
 
             <button 
                 type="submit"
-                class="w-full py-3 bg-amber-200 hover:bg-amber-300 rounded transition-colors"
-            ></button>
+                class="w-full py-3 bg-amber-200 hover:bg-amber-300 rounded transition-colors text-gray-700 font-medium"
+            >
+                𓅱𓈖 𓂋𓈖
+            </button>
         </form>
     </div>
 
