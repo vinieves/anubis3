@@ -10,6 +10,33 @@
     @if($pixelEnabled && $pixelId)
     <!-- Facebook Pixel Code -->
     <script>
+      const TRACKING_DATA = @json($trackingData);
+
+      function trackingPayload(base = {}) {
+        if (!TRACKING_DATA) {
+          return base;
+        }
+
+        const extras = {};
+        const keys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id','fbclid','gclid','wbraid','gbraid'];
+
+        keys.forEach(key => {
+          if (TRACKING_DATA[key]) {
+            extras[key] = TRACKING_DATA[key];
+          }
+        });
+
+        if (TRACKING_DATA.landing_page) {
+          extras.landing_page = TRACKING_DATA.landing_page;
+        }
+
+        if (TRACKING_DATA.referrer) {
+          extras.referrer = TRACKING_DATA.referrer;
+        }
+
+        return Object.assign({}, base, extras);
+      }
+
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -23,13 +50,13 @@
       fbq('track', 'PageView');
       
       // ViewContent - Produto visualizado
-      fbq('track', 'ViewContent', {
+      fbq('track', 'ViewContent', trackingPayload({
         content_name: '{{ $oferta["nome"] }}',
         content_ids: ['{{ $oferta["id"] }}'],
         content_type: 'product',
         value: {{ json_encode($ofertaPrecoFloat) }},
         currency: 'USD'
-      });
+      }));
     </script>
     <noscript>
       <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1"/>
@@ -177,11 +204,11 @@
         // InitiateCheckout - quando usuário começa a preencher
         document.getElementById('name').addEventListener('focus', function() {
             if (!initiateCheckoutFired && typeof fbq !== 'undefined') {
-                fbq('track', 'InitiateCheckout', {
+                fbq('track', 'InitiateCheckout', trackingPayload({
                     value: OFFER_PRICE,
                     currency: 'USD',
                     content_ids: ['{{ $oferta["id"] }}']
-                });
+                }));
                 initiateCheckoutFired = true;
             }
         }, { once: true });
@@ -189,10 +216,10 @@
         // AddPaymentInfo - quando começa a digitar o cartão
         document.getElementById('card-number').addEventListener('input', function() {
             if (!addPaymentInfoFired && typeof fbq !== 'undefined') {
-                fbq('track', 'AddPaymentInfo', {
+                fbq('track', 'AddPaymentInfo', trackingPayload({
                     value: OFFER_PRICE,
                     currency: 'USD'
-                });
+                }));
                 addPaymentInfoFired = true;
             }
         }, { once: true });
@@ -234,11 +261,11 @@
                     
                     // Tracking: Payment Declined
                     if (typeof fbq !== 'undefined') {
-                        fbq('trackCustom', 'PaymentDeclined', {
+                        fbq('trackCustom', 'PaymentDeclined', trackingPayload({
                             reason: data.message,
                             value: OFFER_PRICE,
                             currency: 'USD'
-                        });
+                        }));
                     }
                 }
             })

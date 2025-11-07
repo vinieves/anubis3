@@ -24,6 +24,7 @@ class PayUpsell2Controller extends Controller
             'oferta' => $oferta,
             'pixelId' => $this->pixelService->getPixelId(),
             'pixelEnabled' => $this->pixelService->isEnabled(),
+            'trackingData' => session('pay_tracking', []),
         ]);
     }
 

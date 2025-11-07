@@ -117,10 +117,18 @@ https://seusite.com/pay/thankyou
 |--------|---------------|----------------|
 | **PageView** | Carrega /pay | URL, oferta |
 | **ViewContent** | Carrega /pay | Produto, preço, ID |
-| **InitiateCheckout** | Foca no campo nome | Valor, moeda |
-| **AddPaymentInfo** | Digita cartão | Valor, moeda |
-| **Purchase** 🎯 | Venda aprovada | Valor, ID transação |
-| **PaymentDeclined** | Venda recusada | Motivo, valor |
+| **InitiateCheckout** | Foca no campo nome | Valor, moeda, parâmetros UTM |
+| **AddPaymentInfo** | Digita cartão | Valor, moeda, parâmetros UTM |
+| **Purchase** 🎯 | Venda aprovada | Valor, ID transação, UTM/fbclid (Pixel + CAPI) |
+| **PaymentDeclined** | Venda recusada | Motivo, valor, parâmetros UTM |
+
+> ✅ **UTMs e Click IDs capturados automaticamente!**
+> - `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `utm_id`
+> - `fbclid` → convertido em `fbc` (Conversion API) + `fbp` do cookie
+> - `gclid`, `wbraid`, `gbraid`
+> - `landing_page` e `referrer`
+
+Esses dados são enviados tanto pelo Pixel (browser) quanto pela Conversion API (server), garantindo atribuição completa das campanhas.
 
 ---
 

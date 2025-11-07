@@ -10,10 +10,12 @@ use App\Services\FacebookPixelService;
 class PayController extends Controller
 {
     protected $pixelService;
+    protected $trackingData = [];
 
     public function __construct()
     {
         $this->pixelService = new FacebookPixelService('pay');
+        $this->trackingData = $this->captureTrackingData();
     }
 
     public function index()
@@ -42,7 +44,9 @@ class PayController extends Controller
         $this->pixelService->trackViewContent(
             $oferta['nome'],
             $oferta['id'],
-            $ofertaPreco
+            $ofertaPreco,
+            'USD',
+            $this->trackingData
         );
         
         // Log para debug
@@ -57,6 +61,7 @@ class PayController extends Controller
             'ofertaPrecoFloat' => $ofertaPreco,
             'pixelId' => $this->pixelService->getPixelId(),
             'pixelEnabled' => $this->pixelService->isEnabled(),
+            'trackingData' => $this->trackingData,
         ]);
     }
 
@@ -204,7 +209,8 @@ class PayController extends Controller
                     'USD',
                     $transactionId,
                     [$oferta['id']],
-                    $oferta['nome']
+                    $oferta['nome'],
+                    $this->trackingData
                 );
 
                 logger()->info('[PAY] Venda aprovada', ['transaction_id' => $transactionId]);
@@ -213,7 +219,9 @@ class PayController extends Controller
                 // VENDA RECUSADA
                 $this->pixelService->trackPaymentDeclined(
                     $result['message'] ?? 'Unknown error',
-                    $ofertaPreco
+                    $ofertaPreco,
+                    'USD',
+                    $this->trackingData
                 );
 
                 logger()->info('[PAY] Venda recusada', ['reason' => $result['message'] ?? 'Unknown']);
@@ -257,6 +265,65 @@ class PayController extends Controller
         }
 
         return (float) $price;
+    }
+
+    private function captureTrackingData(): array
+    {
+        $sessionData = session('pay_tracking', []);
+        $queryParams = request()->only([
+            'utm_source',
+            'utm_medium',
+            'utm_campaign',
+            'utm_content',
+            'utm_term',
+            'utm_id',
+            'fbclid',
+            'gclid',
+            'wbraid',
+            'gbraid',
+        ]);
+
+        $updated = false;
+
+        foreach ($queryParams as $key => $value) {
+            if ($value !== null && $value !== '') {
+                $sessionData[$key] = $value;
+                $updated = true;
+            }
+        }
+
+        if (!empty($sessionData['fbclid']) && empty($sessionData['fbc'])) {
+            $sessionData['fbc'] = $this->buildFbc($sessionData['fbclid']);
+            $updated = true;
+        }
+
+        if (empty($sessionData['landing_page'])) {
+            $sessionData['landing_page'] = request()->fullUrl();
+            $updated = true;
+        }
+
+        if (empty($sessionData['referrer']) && request()->headers->get('referer')) {
+            $sessionData['referrer'] = request()->headers->get('referer');
+            $updated = true;
+        }
+
+        $fbp = request()->cookie('_fbp');
+        if ($fbp && empty($sessionData['fbp'])) {
+            $sessionData['fbp'] = $fbp;
+            $updated = true;
+        }
+
+        if ($updated) {
+            session(['pay_tracking' => $sessionData]);
+        }
+
+        return $sessionData;
+    }
+
+    private function buildFbc(string $fbclid): string
+    {
+        $timestamp = request()->server('REQUEST_TIME', time());
+        return 'fb.1.' . $timestamp . '.' . $fbclid;
     }
 }
 

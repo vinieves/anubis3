@@ -9,6 +9,33 @@
     @if($pixelEnabled && $pixelId)
     <!-- Facebook Pixel Code -->
     <script>
+      const TRACKING_DATA = @json($trackingData);
+
+      function trackingPayload(base = {}) {
+        if (!TRACKING_DATA) {
+          return base;
+        }
+
+        const extras = {};
+        const keys = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id','fbclid','gclid','wbraid','gbraid'];
+
+        keys.forEach(key => {
+          if (TRACKING_DATA[key]) {
+            extras[key] = TRACKING_DATA[key];
+          }
+        });
+
+        if (TRACKING_DATA.landing_page) {
+          extras.landing_page = TRACKING_DATA.landing_page;
+        }
+
+        if (TRACKING_DATA.referrer) {
+          extras.referrer = TRACKING_DATA.referrer;
+        }
+
+        return Object.assign({}, base, extras);
+      }
+
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -20,10 +47,10 @@
       
       fbq('init', '{{ $pixelId }}');
       fbq('track', 'PageView');
-      fbq('track', 'ViewContent', {
+      fbq('track', 'ViewContent', trackingPayload({
         content_name: 'Upsell 2 - Elite Package',
         content_type: 'product'
-      });
+      }));
     </script>
     @endif
 </head>

@@ -48,9 +48,13 @@ Route::prefix('pay')->group(function () {
     
     // Thank you
     Route::get('/thankyou', function () {
+        $pixelService = new \App\Services\FacebookPixelService('pay');
+
         return view('pay.thankyou', [
-            'pixelId' => (new \App\Services\FacebookPixelService('pay'))->getPixelId(),
-            'pixelEnabled' => (new \App\Services\FacebookPixelService('pay'))->isEnabled(),
+            'pixelId' => $pixelService->getPixelId(),
+            'pixelEnabled' => $pixelService->isEnabled(),
+            'conversionData' => session('pay_conversion_data'),
+            'trackingData' => session('pay_tracking', []),
         ]);
     })->name('pay.thankyou');
 });

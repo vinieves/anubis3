@@ -25,7 +25,7 @@ class FacebookPixelService
     /**
      * Envia evento via Conversion API (server-side)
      */
-    public function sendServerEvent($eventName, $eventData = [], $userData = [])
+    public function sendServerEvent($eventName, $eventData = [], $userData = [], $trackingData = [])
     {
         if (!$this->enabled || empty($this->pixelId) || empty($this->conversionToken)) {
             Log::info('Facebook Pixel desabilitado ou não configurado');
@@ -34,6 +34,9 @@ class FacebookPixelService
 
         try {
             $url = "https://graph.facebook.com/v18.0/{$this->pixelId}/events";
+
+            $eventData = array_merge($eventData, $this->extractCustomData($trackingData));
+            $userData = array_merge($userData, $this->extractUserData($trackingData));
 
             $payload = [
                 'data' => [[
@@ -83,7 +86,7 @@ class FacebookPixelService
     /**
      * Evento: ViewContent
      */
-    public function trackViewContent($contentName, $contentId, $value, $currency = 'USD')
+    public function trackViewContent($contentName, $contentId, $value, $currency = 'USD', array $trackingData = [])
     {
         return $this->sendServerEvent('ViewContent', [
             'content_name' => $contentName,
@@ -91,36 +94,36 @@ class FacebookPixelService
             'content_type' => 'product',
             'value' => $value,
             'currency' => $currency,
-        ]);
+        ], [], $trackingData);
     }
 
     /**
      * Evento: InitiateCheckout
      */
-    public function trackInitiateCheckout($value, $currency = 'USD', $contentIds = [])
+    public function trackInitiateCheckout($value, $currency = 'USD', $contentIds = [], array $trackingData = [])
     {
         return $this->sendServerEvent('InitiateCheckout', [
             'value' => $value,
             'currency' => $currency,
             'content_ids' => $contentIds,
-        ]);
+        ], [], $trackingData);
     }
 
     /**
      * Evento: AddPaymentInfo
      */
-    public function trackAddPaymentInfo($value, $currency = 'USD')
+    public function trackAddPaymentInfo($value, $currency = 'USD', array $trackingData = [])
     {
         return $this->sendServerEvent('AddPaymentInfo', [
             'value' => $value,
             'currency' => $currency,
-        ]);
+        ], [], $trackingData);
     }
 
     /**
      * Evento: Purchase (CONVERSÃO)
      */
-    public function trackPurchase($value, $currency, $transactionId, $contentIds = [], $contentName = '')
+    public function trackPurchase($value, $currency, $transactionId, $contentIds = [], $contentName = '', array $trackingData = [])
     {
         return $this->sendServerEvent('Purchase', [
             'value' => $value,
@@ -128,19 +131,19 @@ class FacebookPixelService
             'transaction_id' => $transactionId,
             'content_ids' => $contentIds,
             'content_name' => $contentName,
-        ]);
+        ], [], $trackingData);
     }
 
     /**
      * Evento Customizado: PaymentDeclined
      */
-    public function trackPaymentDeclined($reason, $value, $currency = 'USD')
+    public function trackPaymentDeclined($reason, $value, $currency = 'USD', array $trackingData = [])
     {
         return $this->sendServerEvent('PaymentDeclined', [
             'reason' => $reason,
             'value' => $value,
             'currency' => $currency,
-        ]);
+        ], [], $trackingData);
     }
 
     /**
@@ -158,5 +161,49 @@ class FacebookPixelService
     {
         return $this->enabled && !empty($this->pixelId);
     }
+
+    private function extractCustomData(array $trackingData): array
+    {
+        $keys = [
+            'utm_source',
+            'utm_medium',
+            'utm_campaign',
+            'utm_content',
+            'utm_term',
+            'utm_id',
+            'gclid',
+            'wbraid',
+            'gbraid',
+            'fbclid',
+            'landing_page',
+            'referrer',
+        ];
+
+        $custom = [];
+
+        foreach ($keys as $key) {
+            if (!empty($trackingData[$key])) {
+                $custom[$key] = $trackingData[$key];
+            }
+        }
+
+        return $custom;
+    }
+
+    private function extractUserData(array $trackingData): array
+    {
+        $user = [];
+
+        if (!empty($trackingData['fbc'])) {
+            $user['fbc'] = $trackingData['fbc'];
+        }
+
+        if (!empty($trackingData['fbp'])) {
+            $user['fbp'] = $trackingData['fbp'];
+        }
+
+        return $user;
+    }
 }
+
 
