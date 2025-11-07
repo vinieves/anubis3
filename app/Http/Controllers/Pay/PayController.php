@@ -29,14 +29,20 @@ class PayController extends Controller
         // Buscar dados da oferta
         $oferta = OfertaService::getOferta($ofertaId);
         
+        // Normaliza preço da oferta
+        $ofertaPreco = $this->normalizePrice($oferta['preco']);
+
         // Salvar oferta na sessão para upsells
-        session(['pay_oferta_atual' => $oferta]);
+        session([
+            'pay_oferta_atual' => $oferta,
+            'pay_oferta_preco' => $ofertaPreco,
+        ]);
         
         // Tracking: ViewContent
         $this->pixelService->trackViewContent(
             $oferta['nome'],
             $oferta['id'],
-            $oferta['preco']
+            $ofertaPreco
         );
         
         // Log para debug
@@ -48,6 +54,7 @@ class PayController extends Controller
         
         return view('pay.index', [
             'oferta' => $oferta,
+            'ofertaPrecoFloat' => $ofertaPreco,
             'pixelId' => $this->pixelService->getPixelId(),
             'pixelEnabled' => $this->pixelService->isEnabled(),
         ]);
@@ -150,6 +157,7 @@ class PayController extends Controller
 
         // Pegar oferta atual da sessão
         $oferta = session('pay_oferta_atual');
+        $ofertaPreco = session('pay_oferta_preco', $this->normalizePrice($oferta['preco'] ?? 0));
         $checkoutId = $oferta['checkout_id'] ?? env('CHECKOUT_ID');
         
         logger()->info('[PAY] Criando pedido', [
@@ -182,7 +190,7 @@ class PayController extends Controller
                 
                 session([
                     'pay_conversion_data' => [
-                        'value' => $oferta['preco'],
+                        'value' => $ofertaPreco,
                         'currency' => 'USD',
                         'transaction_id' => $transactionId,
                         'content_ids' => [$oferta['id']],
@@ -192,7 +200,7 @@ class PayController extends Controller
 
                 // Envia evento server-side também
                 $this->pixelService->trackPurchase(
-                    $oferta['preco'],
+                    $ofertaPreco,
                     'USD',
                     $transactionId,
                     [$oferta['id']],
@@ -205,7 +213,7 @@ class PayController extends Controller
                 // VENDA RECUSADA
                 $this->pixelService->trackPaymentDeclined(
                     $result['message'] ?? 'Unknown error',
-                    $oferta['preco']
+                    $ofertaPreco
                 );
 
                 logger()->info('[PAY] Venda recusada', ['reason' => $result['message'] ?? 'Unknown']);
@@ -225,6 +233,30 @@ class PayController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * Normaliza valores monetários para float
+     */
+    private function normalizePrice($price): float
+    {
+        if (is_null($price)) {
+            return 0.0;
+        }
+
+        $price = (string) $price;
+        $price = trim($price);
+
+        // Remove qualquer caractere que não seja número, vírgula ou ponto
+        $price = preg_replace('/[^0-9,\.]/', '', $price);
+
+        if (str_contains($price, ',')) {
+            // Remove separador de milhar e converte vírgula em ponto
+            $price = str_replace('.', '', $price);
+            $price = str_replace(',', '.', $price);
+        }
+
+        return (float) $price;
     }
 }
 

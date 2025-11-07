@@ -27,7 +27,7 @@
         content_name: '{{ $oferta["nome"] }}',
         content_ids: ['{{ $oferta["id"] }}'],
         content_type: 'product',
-        value: {{ $oferta['preco'] }},
+        value: {{ json_encode($ofertaPrecoFloat) }},
         currency: 'USD'
       });
     </script>
@@ -53,7 +53,7 @@
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-900">{{ $oferta['nome'] }}</h1>
             <p class="text-gray-600 mt-2">{{ $oferta['descricao'] }}</p>
-            <p class="text-4xl font-bold text-blue-600 mt-4">${{ $oferta['preco'] }}</p>
+            <p class="text-4xl font-bold text-blue-600 mt-4">${{ number_format($ofertaPrecoFloat, 2, ',', '.') }}</p>
         </div>
 
         <!-- Payment Form -->
@@ -156,7 +156,7 @@
                     type="submit" 
                     class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
                 >
-                    Complete Purchase - ${{ $oferta['preco'] }}
+                    Complete Purchase - ${{ number_format($ofertaPrecoFloat, 2, '.', ',') }}
                 </button>
             </form>
 
@@ -172,12 +172,13 @@
         const loadingOverlay = document.getElementById('loading-overlay');
         let initiateCheckoutFired = false;
         let addPaymentInfoFired = false;
+        const OFFER_PRICE = {{ json_encode($ofertaPrecoFloat) }};
 
         // InitiateCheckout - quando usuário começa a preencher
         document.getElementById('name').addEventListener('focus', function() {
             if (!initiateCheckoutFired && typeof fbq !== 'undefined') {
                 fbq('track', 'InitiateCheckout', {
-                    value: {{ $oferta['preco'] }},
+                    value: OFFER_PRICE,
                     currency: 'USD',
                     content_ids: ['{{ $oferta["id"] }}']
                 });
@@ -189,7 +190,7 @@
         document.getElementById('card-number').addEventListener('input', function() {
             if (!addPaymentInfoFired && typeof fbq !== 'undefined') {
                 fbq('track', 'AddPaymentInfo', {
-                    value: {{ $oferta['preco'] }},
+                    value: OFFER_PRICE,
                     currency: 'USD'
                 });
                 addPaymentInfoFired = true;
@@ -235,7 +236,7 @@
                     if (typeof fbq !== 'undefined') {
                         fbq('trackCustom', 'PaymentDeclined', {
                             reason: data.message,
-                            value: {{ $oferta['preco'] }},
+                            value: OFFER_PRICE,
                             currency: 'USD'
                         });
                     }
