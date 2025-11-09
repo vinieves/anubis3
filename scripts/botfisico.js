@@ -228,11 +228,19 @@ const fetchGatewayPayment = `(async () => {
   page.on('response', async (response) => {
     try {
       const url = response.url();
-      if (url.includes('/gatewaypay') || url.includes('/abandoned')) {
-        const status = response.status();
-        const body = await response.clone().text();
-        console.error('[response]', { url, status, body });
+      if (!url.includes('/gatewaypay') && !url.includes('/abandoned')) {
+        return;
       }
+
+      const status = response.status();
+      let body = '';
+      try {
+        body = await response.text();
+      } catch (innerError) {
+        body = '[erro ao ler corpo]';
+        console.error('[response-body-error]', innerError?.message || innerError);
+      }
+      console.error('[response]', { url, status, body });
     } catch (error) {
       console.error('[response-log-error]', error?.stack || error?.message || error);
     }
