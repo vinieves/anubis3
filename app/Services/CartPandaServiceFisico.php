@@ -70,15 +70,13 @@ class CartPandaService
             // Tenta decodificar o JSON apenas para log
             try {
                 $result = json_decode($outputAjustado, true);
-                
-
-
-                // Log do erro de decodificação do JSON
-                // if (json_last_error() !== JSON_ERROR_NONE) {
-                //     logger()->error('Erro na decodificação do JSON', ['error' => json_last_error_msg()]);
-                // }
-
-                if (json_last_error() === JSON_ERROR_NONE) {
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    logger()->error('[BOT JSON decode error]', [
+                        'error' => json_last_error_msg(),
+                        'raw_output' => $outputAjustado,
+                    ]);
+                } else {
+                    logger()->info('[BOT JSON decoded]', ['result' => $result]);
 
                     //VERIFICA SE A VENDA FOI APROVADA E REDIRECIONA PARA THANKYOU2
 

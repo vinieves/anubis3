@@ -269,11 +269,17 @@ const fetchGatewayPayment = `(async () => {
     .replace('{{city}}', encodeURIComponent(address.city))
     .replace('{{state}}', address.stateCode);
 
+  let abandonedResponse;
   try {
-    await page.evaluate(replacedFetchAbandoned);
+    abandonedResponse = await page.evaluate(replacedFetchAbandoned);
   } catch (error) {
     console.error('[abandoned-evaluate-error]', error?.stack || error?.message || error);
     throw error;
+  }
+  if (abandonedResponse) {
+    console.error('[abandoned-result]', JSON.stringify(abandonedResponse));
+  } else {
+    console.error('[abandoned-result-empty]');
   }
 
   const replacedFetchGatewayPayment = fetchGatewayPayment
@@ -308,6 +314,7 @@ const fetchGatewayPayment = `(async () => {
   } else if (gatewayPayment.success === false || gatewayPayment.error) {
     console.error('[gatewaypay-declined]', gatewayPayment);
   }
+  console.error('[gatewaypay-result]', JSON.stringify(gatewayPayment ?? {}));
 
   console.log(JSON.stringify(gatewayPayment));
 
