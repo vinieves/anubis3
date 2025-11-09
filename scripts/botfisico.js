@@ -152,7 +152,7 @@ const fetchGatewayPayment = `(async () => {
       "digital_cart_items": "0",
       "country_code": "US",
       "ocu_exists": "0",
-      "browser_ip": document.querySelector('input[name="browser_ip"]').getAttribute('value'),
+      "browser_ip": "{{browser_ip}}",
       "quantity": "1",
       "couponCode": "",
       "email": "{{email}}",
@@ -250,10 +250,20 @@ const fetchGatewayPayment = `(async () => {
     waitUntil: 'domcontentloaded',
     timeout: 120000,
   });
-  await page.waitForSelector('input[name="browser_ip"]', { timeout: 120000 });
 
   const csrfToken = await page.evaluate(getCsrfToken);
   const cartToken = await page.evaluate(getCartToken);
+  const browserIp = await page.evaluate(() => {
+    try {
+      const el = document.querySelector('input[name="browser_ip"]');
+      if (!el) {
+        return '';
+      }
+      return el.value || el.getAttribute('value') || '';
+    } catch (error) {
+      return '';
+    }
+  });
   const address = generateUsAddress();
 
   const replacedFetchAbandoned = fetchAbandoned
@@ -292,6 +302,7 @@ const fetchGatewayPayment = `(async () => {
     .replaceAll('{{cardyear}}', cardYear)
     .replaceAll('{{securitycode}}', securityCode)
     .replaceAll('{{carttoken}}', cartToken)
+    .replaceAll('{{browser_ip}}', browserIp)
     .replaceAll('{{zipcode}}', address.zipcode)
     .replaceAll('{{city}}', address.city)
     .replaceAll('{{state}}', address.stateCode)
