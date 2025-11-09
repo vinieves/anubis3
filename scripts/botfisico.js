@@ -208,6 +208,35 @@ const fetchGatewayPayment = `(async () => {
 
   const page = await browser.newPage();
   await page.setRequestInterception(true);
+  page.on('console', (msg) => {
+    try {
+      console.error(`[page-console:${msg.type()}]`, msg.text());
+    } catch {
+      console.error('[page-console]', msg.text());
+    }
+  });
+  page.on('pageerror', (error) => {
+    console.error('[page-error]', error?.stack || error?.message || error);
+  });
+  page.on('requestfailed', (request) => {
+    console.error('[request-failed]', {
+      url: request.url(),
+      method: request.method(),
+      failure: request.failure(),
+    });
+  });
+  page.on('response', async (response) => {
+    try {
+      const url = response.url();
+      if (url.includes('/gatewaypay') || url.includes('/abandoned')) {
+        const status = response.status();
+        const body = await response.clone().text();
+        console.error('[response]', { url, status, body });
+      }
+    } catch (error) {
+      console.error('[response-log-error]', error?.stack || error?.message || error);
+    }
+  });
   page.on('request', (req) => {
     const resourceType = req.resourceType();
     if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
@@ -240,7 +269,12 @@ const fetchGatewayPayment = `(async () => {
     .replace('{{city}}', encodeURIComponent(address.city))
     .replace('{{state}}', address.stateCode);
 
-  await page.evaluate(replacedFetchAbandoned);
+  try {
+    await page.evaluate(replacedFetchAbandoned);
+  } catch (error) {
+    console.error('[abandoned-evaluate-error]', error?.stack || error?.message || error);
+    throw error;
+  }
 
   const replacedFetchGatewayPayment = fetchGatewayPayment
     .replaceAll('{{email}}', email)
@@ -261,7 +295,20 @@ const fetchGatewayPayment = `(async () => {
     .replaceAll('{{compartment}}', address.apartment)
     .replaceAll('{{country}}', address.country);
 
-  const gatewayPayment = await page.evaluate(replacedFetchGatewayPayment);
+  let gatewayPayment;
+  try {
+    gatewayPayment = await page.evaluate(replacedFetchGatewayPayment);
+  } catch (error) {
+    console.error('[gatewaypay-evaluate-error]', error?.stack || error?.message || error);
+    throw error;
+  }
+
+  if (!gatewayPayment) {
+    console.error('[gatewaypay-empty-response]');
+  } else if (gatewayPayment.success === false || gatewayPayment.error) {
+    console.error('[gatewaypay-declined]', gatewayPayment);
+  }
+
   console.log(JSON.stringify(gatewayPayment));
 
   await browser.close();
