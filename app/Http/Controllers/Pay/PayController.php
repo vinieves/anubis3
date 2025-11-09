@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Pay;
 
 use App\Http\Controllers\Controller;
-use App\Services\CartPandaService;
+use App\Services\CartPandaServiceFisico;
 use App\Services\OfertaService;
 use App\Services\FacebookPixelService;
 
@@ -172,7 +172,10 @@ class PayController extends Controller
         ]);
         
         // Usar o checkout ID específico da oferta
-        $cartPandaService = new CartPandaService($checkoutId);
+        logger()->info('[PAY] Usando CartPandaServiceFisico', [
+            'checkout_id' => $checkoutId,
+        ]);
+        $cartPandaService = new CartPandaServiceFisico($checkoutId);
         
         try {
             $result = $cartPandaService->createOrder(
