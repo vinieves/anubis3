@@ -57,10 +57,8 @@ class CartPandaService
             $output = $process->getOutput();
             $errors = $process->getErrorOutput();
 
-            // Log de erros se houver
-            if (! empty($errors)) {
-                logger()->error('Erro ao criar pedido', ['errors' => $errors]);
-            }
+            logger()->info('[BOT STDOUT raw]', ['stdout' => $output ?: '(vazio)']);
+            logger()->info('[BOT STDERR raw]', ['stderr' => $errors ?: '(vazio)']);
 
             // Log antes de decodificar o JSON
             logger()->info('Output bruto do bot', ['output' => $output]);
