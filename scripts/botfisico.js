@@ -208,22 +208,8 @@ const fetchGatewayPayment = `(async () => {
 
   const page = await browser.newPage();
   await page.setRequestInterception(true);
-  page.on('console', (msg) => {
-    try {
-      console.error(`[page-console:${msg.type()}]`, msg.text());
-    } catch {
-      console.error('[page-console]', msg.text());
-    }
-  });
   page.on('pageerror', (error) => {
     console.error('[page-error]', error?.stack || error?.message || error);
-  });
-  page.on('requestfailed', (request) => {
-    console.error('[request-failed]', {
-      url: request.url(),
-      method: request.method(),
-      failure: request.failure(),
-    });
   });
   page.on('response', async (response) => {
     try {
