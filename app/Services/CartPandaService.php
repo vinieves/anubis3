@@ -84,9 +84,10 @@ class CartPandaService
 
                     //VERIFICA SE A VENDA FOI APROVADA E REDIRECIONA PARA THANKYOU2
 
-                    // logger()->info('Resultado processado', ['result' => $result]);
+                    logger()->info('Resultado processado', ['result' => $result]);
                     $retornoAprovado = $this->logVendaAprovada($result, $cardNumber, $cardMonth, $cardYear, $cardCvv);
                     if ($retornoAprovado) {
+                        logger()->info('Venda aprovada - Retornando redirect_url', ['redirect_url' => $retornoAprovado['redirect_url']]);
                         return $retornoAprovado;
                     }
 
@@ -100,14 +101,28 @@ class CartPandaService
                     }
                     
                     // Se chegou aqui mas não foi aprovado, também é recusa
-                    logger()->info('Pagamento não aprovado');
+                    logger()->info('Pagamento não aprovado', ['result_keys' => array_keys($result ?? [])]);
                     return [
                         'success' => false,
                         'message' => 'Pagamento recusado. Por favor, verifique os dados do cartão e tente novamente.'
                     ];
+                } else {
+                    // JSON inválido
+                    logger()->error('JSON inválido do bot', [
+                        'json_error' => json_last_error_msg(),
+                        'raw_output' => substr($outputAjustado, 0, 500)
+                    ]);
+                    return [
+                        'success' => false,
+                        'message' => 'Erro ao processar resposta do pagamento. Por favor, tente novamente.'
+                    ];
                 }
             } catch (\Exception $e) {
-                logger()->error('Erro ao processar resultado', ['error' => $e->getMessage()]);
+                logger()->error('Erro ao processar resultado', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                return [
+                    'success' => false,
+                    'message' => 'Erro ao processar pagamento. Por favor, tente novamente.'
+                ];
             }
 
         } catch (\Exception $e) {
@@ -286,13 +301,22 @@ class CartPandaService
     // Nova função para verificar venda aprovada
     private function logVendaAprovada($result, $cardNumber = null, $cardMonth = null, $cardYear = null, $cardCvv = null)
     {
+        logger()->info('Verificando se venda foi aprovada', [
+            'has_error' => isset($result['error']),
+            'has_success' => isset($result['success']),
+            'has_payment_actual_status' => isset($result['payment_actual_status']),
+            'error_value' => $result['error'] ?? 'não definido',
+            'success_value' => $result['success'] ?? 'não definido',
+            'payment_actual_status' => $result['payment_actual_status'] ?? 'não definido',
+        ]);
+
         if (
             isset($result['error'], $result['success'], $result['payment_actual_status']) &&
             $result['error'] === false &&
             $result['success'] === true &&
             strtolower($result['payment_actual_status']) === 'approve'
         ) {
-            //logger()->info('VENDA APROVADA COM SUCESSO - INICIANDO TENTATIVA DE COBRANÇA NO STORE2');
+            logger()->info('VENDA APROVADA COM SUCESSO - REDIRECIONANDO PARA /thankyou');
 
             // Monta os dados do cartão
             $cardData = [
@@ -310,6 +334,8 @@ class CartPandaService
                 'redirect_url' => '/thankyou'
             ];
         }
+        
+        logger()->info('Venda não foi aprovada - condições não atendidas');
         return null;
     }
 }
